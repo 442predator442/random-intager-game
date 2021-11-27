@@ -1,0 +1,15 @@
+{
+  "name": "randomint",
+  "version": "1.0.0",
+  "description": "Game of random number",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ."
+  },
+  "author": "Roman Stupnitskiy <roman.stupnitskyy@kitu.nau.edu.ua>",
+  "license": "ISC",
+  "dependencies": {
+    "input": "^1.0.1",
+    "readline": "^1.3.0"
+  }
+}
