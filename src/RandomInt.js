@@ -1,46 +1,40 @@
-const input = require('input');
-const RandomIntGame = require('./structures/RandomIntGame');
+const { text, confirm } = require('input');
+const RandomIntGame     = require('./structures/RandomIntGame');
 
 const getGameRules = async () => {
-    var max            = await input.text('Введите максимальное число', { default: 100 });
-    var min            = await input.text('Введите минимальное число', { default: 1 });
-    var attempts       = await input.text('Введите количество попыток', { default: 15 });
-    var promptOfNumber = await input.confirm('Хотите ли вы получать подсказки( загаданное число больше/маньше ) ?', { default: true });
+    var maxInt = await text('Введіть максимальне число:', { default: 100 });
+    var minInt = await text('Введіть мінімальне число:', { default: 1 });
+    var attempts = await text('Введіть кількість спроб:', { default: 15 });
+    var prompts = await confirm('Гра з підсказками?', { default: true });
 
-    return {
-        maxInt   : max,
-        minInt   : min,
-        attempts : attempts,
-        prompt   : promptOfNumber
-    }
+    return { maxInt, minInt, attempts, prompts };
 }
 
 getGameRules().then(async result => {
-    if(result.maxInt <= result.minInt) throw new Error('Максимальное число не может быть меньше или ровно минимальному числу!')
+    if(result.maxInt <= result.minInt) throw new Error('Максимальне число не може бути меньше, чим мінімальне!');
     var game = new RandomIntGame(result);
     var currentNumber = 0;
-    while(currentNumber != game.number) {
-        currentNumber = await input.text(`Введите число от ${game.gameRules.minInt} до ${game.gameRules.maxInt}:`);
-        if(currentNumber.length === 0 || isNaN(currentNumber)) {
-            console.error('Пожалуйста, введите число!');
-        }
+    while(currentNumber != game.number) { // умова має бути позитивною (true)
+        currentNumber = Math.floor(await text(`Введіть число від ${result.minInt} до ${result.maxInt}:`));
+        if(currentNumber < result.minInt || result.maxInt < currentNumber) console.log(`Число має бути більше ${result.minInt} та меньшим за ${result.maxInt}`);
         else {
             var attempt = game.check(currentNumber);
-            if(attempt.error) return console.error(attempt.message)
+            if(attempt.error) console.error(attempt.message);
             else {
                 if(attempt.win) {
-                    console.log(`Поздравляю, Вы угадали число!\nВы прошли игру за ${game.attempts.length+1}/${game.gameRules.attempts} попыток!`);
+                    console.log(`Вітаю, ти виграв! Загадане число: ${game.number}!\nТи використав ${game.attempts.length} із ${result.attempts}!`);
                     break;
                 }
                 else {
-                    var attempts = game.attempts.length+1;
-                    if(attempts >= game.gameRules.attempts) {
-                        console.log(`К сожаленью, вы проиграли: было использовано все попытки.\nЗагаданное число: ${game.number}`);
+                    var attempts = game.attempts.length; // відрахунок в масиві починається з нуля, але властивість length повертає кількість :)
+                    if(attempts >= result.attempts) {
+                        console.log(`На жаль ти програв :(\nЗагадане число: ${game.number}`);
                         break;
                     }
-                    if(game.gameRules.prompt) {
-                        console.log(`Вы не угадали: загаданное число ${currentNumber < game.number ? 'больше' : 'меньше'} вашего! Попробуйте ещё раз!`);
-                    } else console.log('Вы не угадали число! Попробуйте ещё раз!');
+                    else {
+                        if(result.prompts) console.log(`Ви не вгадали! Загадане число ${currentNumber < game.number ? 'більше' : 'менше'} вашого!\nПопробуйте ще раз, у вас залишилось ${result.attempts - attempts} спроб!`);
+                        else console.log(`Ви не вгадали! Попробуйте ще раз, у вас залишилось ${result.attempts - attempts} спроб!`);
+                    }
                 }
             }
         }
